@@ -2,6 +2,8 @@ package block_stm
 
 import (
 	"context"
+	"fmt"
+	"time"
 )
 
 // Executor fields are not mutated during execution.
@@ -48,14 +50,20 @@ func (e *Executor) Run() {
 			}
 
 			version, kind = e.scheduler.NextTask()
+			fmt.Printf("mm-Run[%d][%s]-NextTask:[%v]\n", e.i, time.Now(), version.Index)
 			continue
 		}
 
 		switch kind {
 		case TaskKindExecution:
+			fmt.Printf("mm-Run[%d][%s]-TryExecute-bf:[%v]\n", e.i, time.Now(), version.Index)
 			version, kind = e.TryExecute(version)
+			fmt.Printf("mm-Run[%d][%s]-TryExecute-af:[%v]\n", e.i, time.Now(), version.Index)
+
 		case TaskKindValidation:
+			fmt.Printf("mm-Run[%d][%s]-NeedsReexecution-bf:[%v]\n", e.i, time.Now(), version.Index)
 			version, kind = e.NeedsReexecution(version)
+			fmt.Printf("mm-Run[%d][%s]-NeedsReexecution-af:[%v]\n", e.i, time.Now(), version.Index)
 		}
 	}
 }
