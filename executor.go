@@ -37,7 +37,7 @@ func NewExecutor(
 //   - `NextTask` increases it if returns a valid task.
 //   - `TryExecute` and `NeedsReexecution` don't change it if it returns a new valid task to run,
 //     otherwise it decreases it.
-func (e *Executor) Run() {
+func (e *Executor) Run(t time.Time, h int64) {
 	var kind TaskKind
 	version := InvalidTxnVersion
 	for !e.scheduler.Done() {
@@ -50,20 +50,20 @@ func (e *Executor) Run() {
 			}
 
 			version, kind = e.scheduler.NextTask()
-			fmt.Printf("mm-Run[%d][%s]-NextTask:[%v]\n", e.i, time.Now(), version.Index)
+			fmt.Printf("mm-Run[%d][%s][%d][%s]-NextTask:[%v]\n", e.i, time.Now(), h, t, version.Index)
 			continue
 		}
 
 		switch kind {
 		case TaskKindExecution:
-			fmt.Printf("mm-Run[%d][%s]-TryExecute-bf:[%v]\n", e.i, time.Now(), version.Index)
+			fmt.Printf("mm-Run[%d][%s][%d][%s]-TryExecute-bf:[%v]\n", e.i, time.Now(), h, t, version.Index)
 			version, kind = e.TryExecute(version)
-			fmt.Printf("mm-Run[%d][%s]-TryExecute-af:[%v]\n", e.i, time.Now(), version.Index)
+			fmt.Printf("mm-Run[%d][%s][%d][%s]-TryExecute-af:[%v]\n", e.i, time.Now(), h, t, version.Index)
 
 		case TaskKindValidation:
-			fmt.Printf("mm-Run[%d][%s]-NeedsReexecution-bf:[%v]\n", e.i, time.Now(), version.Index)
+			fmt.Printf("mm-Run[%d][%s][%d][%s]-NeedsReexecution-bf:[%v]\n", e.i, time.Now(), h, t, version.Index)
 			version, kind = e.NeedsReexecution(version)
-			fmt.Printf("mm-Run[%d][%s]-NeedsReexecution-af:[%v]\n", e.i, time.Now(), version.Index)
+			fmt.Printf("mm-Run[%d][%s][%d][%s]-NeedsReexecution-af:[%v]\n", e.i, time.Now(), h, t, version.Index)
 		}
 	}
 }

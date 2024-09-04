@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"runtime"
 	"sync"
+	"time"
 
 	storetypes "cosmossdk.io/store/types"
 )
@@ -17,6 +18,8 @@ func ExecuteBlock(
 	storage MultiStore,
 	executors int,
 	txExecutor TxExecutor,
+	t time.Time,
+	h int64,
 ) error {
 	if executors < 0 {
 		return fmt.Errorf("invalid number of executors: %d", executors)
@@ -35,7 +38,7 @@ func ExecuteBlock(
 		e := NewExecutor(ctx, scheduler, txExecutor, mvMemory, i)
 		go func() {
 			defer wg.Done()
-			e.Run()
+			e.Run(t, h)
 		}()
 	}
 	wg.Wait()
