@@ -49,10 +49,25 @@ func noConflictBlock(size int) *MockBlock {
 
 func worstCaseBlock(size int) *MockBlock {
 	txs := make([]Tx, size)
+	locks := make([]chan bool, size)
 	for i := 0; i < size; i++ {
+		locks[i] = make(chan bool)
 		// all transactions are from the same account
 		sender := "account0"
-		txs[i] = BankTransferTx(i, sender, sender, 1)
+		index := i
+		txs[i] = func(ms MultiStore) error {
+			defer func() {
+				if index < len(txs)-1 {
+					go func() {
+						locks[index] <- true
+					}()
+				}
+			}()
+			if index > 0 {
+				<-locks[index-1]
+			}
+			return BankTransferTx(index, sender, sender, 1)(ms)
+		}
 	}
 	return NewMockBlock(txs)
 }
