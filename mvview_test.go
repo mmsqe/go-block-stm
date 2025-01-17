@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	"cosmossdk.io/core/store"
 	storetypes "cosmossdk.io/store/types"
 	"github.com/test-go/testify/require"
 )
@@ -170,7 +171,7 @@ func TestMVMemoryViewIteration(t *testing.T) {
 	}
 }
 
-func CollectIterator[V any](iter storetypes.GIterator[V]) []GKVPair[V] {
+func CollectIterator[V any](iter store.GIterator[V]) []GKVPair[V] {
 	var res []GKVPair[V]
 	for iter.Valid() {
 		res = append(res, GKVPair[V]{iter.Key(), iter.Value()})

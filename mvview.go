@@ -3,8 +3,10 @@ package block_stm
 import (
 	"io"
 
+	"cosmossdk.io/core/store"
 	"cosmossdk.io/store/cachekv"
 	"cosmossdk.io/store/tracekv"
+	"cosmossdk.io/store/types"
 	storetypes "cosmossdk.io/store/types"
 )
 
@@ -17,7 +19,7 @@ var (
 
 // GMVMemoryView[V] wraps `MVMemory` for execution of a single transaction.
 type GMVMemoryView[V any] struct {
-	storage   storetypes.GKVStore[V]
+	storage   types.GKVStore[V]
 	mvData    *GMVData[V]
 	scheduler *Scheduler
 	store     int
@@ -126,18 +128,18 @@ func (s *GMVMemoryView[V]) Delete(key []byte) {
 	s.writeSet.OverlaySet(key, empty)
 }
 
-func (s *GMVMemoryView[V]) Iterator(start, end []byte) storetypes.GIterator[V] {
+func (s *GMVMemoryView[V]) Iterator(start, end []byte) store.GIterator[V] {
 	return s.iterator(IteratorOptions{Start: start, End: end, Ascending: true})
 }
 
-func (s *GMVMemoryView[V]) ReverseIterator(start, end []byte) storetypes.GIterator[V] {
+func (s *GMVMemoryView[V]) ReverseIterator(start, end []byte) store.GIterator[V] {
 	return s.iterator(IteratorOptions{Start: start, End: end, Ascending: false})
 }
 
-func (s *GMVMemoryView[V]) iterator(opts IteratorOptions) storetypes.GIterator[V] {
+func (s *GMVMemoryView[V]) iterator(opts IteratorOptions) store.GIterator[V] {
 	mvIter := s.mvData.Iterator(opts, s.txn, s.waitFor)
 
-	var parentIter, wsIter storetypes.GIterator[V]
+	var parentIter, wsIter store.GIterator[V]
 
 	if s.writeSet == nil {
 		wsIter = NewNoopIterator[V](opts.Start, opts.End, opts.Ascending)
@@ -151,7 +153,7 @@ func (s *GMVMemoryView[V]) iterator(opts IteratorOptions) storetypes.GIterator[V
 		parentIter = s.storage.ReverseIterator(opts.Start, opts.End)
 	}
 
-	onClose := func(iter storetypes.GIterator[V]) {
+	onClose := func(iter store.GIterator[V]) {
 		reads := mvIter.Reads()
 
 		var stopKey Key

@@ -3,6 +3,7 @@ package block_stm
 import (
 	"io"
 
+	"cosmossdk.io/core/store"
 	"cosmossdk.io/store/cachekv"
 	"cosmossdk.io/store/tracekv"
 	storetypes "cosmossdk.io/store/types"
@@ -104,15 +105,15 @@ func (db *GMemDB[V]) OverlaySet(key Key, value V) {
 	db.BTreeG.Set(memdbItem[V]{key: key, value: value})
 }
 
-func (db *GMemDB[V]) Iterator(start, end []byte) storetypes.GIterator[V] {
+func (db *GMemDB[V]) Iterator(start, end []byte) store.GIterator[V] {
 	return db.iterator(start, end, true)
 }
 
-func (db *GMemDB[V]) ReverseIterator(start, end []byte) storetypes.GIterator[V] {
+func (db *GMemDB[V]) ReverseIterator(start, end []byte) store.GIterator[V] {
 	return db.iterator(start, end, false)
 }
 
-func (db *GMemDB[V]) iterator(start, end Key, ascending bool) storetypes.GIterator[V] {
+func (db *GMemDB[V]) iterator(start, end Key, ascending bool) store.GIterator[V] {
 	return NewMemDBIterator(start, end, db.Iter(), ascending)
 }
 
@@ -148,7 +149,7 @@ func NewMemDBIterator[V any](start, end Key, iter btree.IterG[memdbItem[V]], asc
 	)}
 }
 
-func NewNoopIterator[V any](start, end Key, ascending bool) storetypes.GIterator[V] {
+func NewNoopIterator[V any](start, end Key, ascending bool) store.GIterator[V] {
 	return &MemDBIterator[V]{BTreeIteratorG[memdbItem[V]]{
 		start:     start,
 		end:       end,
